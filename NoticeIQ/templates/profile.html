@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block page_title %}Profile{% endblock %}
+{% block header_title %}My Profile{% endblock %}
+{% block header_sub %}Editing your profile instantly re-scores every notice{% endblock %}
+
+{% block content %}
+<form method="POST" action="{{ url_for('profile') }}" style="max-width:820px">
+  <div class="card">
+    <h4 class="serif">Academic Details</h4>
+    <p class="card-sub">These fields drive the audience-match part of your relevance score.</p>
+
+    <div class="field">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" name="name" value="{{ user.name }}" data-testid="profile-name">
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="branch">Branch</label>
+        <select id="branch" name="branch" data-testid="profile-branch">
+          {% for b in branches %}
+            <option value="{{ b }}" {{ 'selected' if b==user.branch }}>{{ b }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="year">Year</label>
+        <select id="year" name="year" data-testid="profile-year">
+          {% for y in years %}
+            <option value="{{ y }}" {{ 'selected' if y==user.year }}>{{ y }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="division">Division</label>
+        <select id="division" name="division" data-testid="profile-division">
+          {% for d in divisions %}
+            <option value="{{ d }}" {{ 'selected' if d==user.division }}>{{ d }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h4 class="serif">Subjects</h4>
+    <p class="card-sub">A notice about one of your subjects becomes more relevant.</p>
+    <div class="checks" data-testid="profile-subjects">
+      {% for s in all_subjects %}
+        <div class="check">
+          <input type="checkbox" id="sub-{{ loop.index }}" name="subjects" value="{{ s }}"
+                 {{ 'checked' if s in user.subjects }}>
+          <label for="sub-{{ loop.index }}">{{ s }}</label>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <h4 class="serif">Interests</h4>
+    <p class="card-sub">Interests add relevance for events, workshops and opportunities.</p>
+    <div class="checks" data-testid="profile-interests">
+      {% for i in all_interests %}
+        <div class="check">
+          <input type="checkbox" id="int-{{ loop.index }}" name="interests" value="{{ i }}"
+                 {{ 'checked' if i in user.interests }}>
+          <label for="int-{{ loop.index }}">{{ i }}</label>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary btn-lg" data-testid="profile-save">Save Changes</button>
+</form>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block page_title %}{% if edit_mode %}Edit Notice{% else %}Add Notice{% endif %}{% endblock %}
+{% block header_title %}{% if edit_mode %}Edit Notice{% else %}Add Notice{% endif %}{% endblock %}
+{% block header_sub %}Paste a raw notice — the analyzer extracts the details for you{% endblock %}
+
+{% block content %}
+<div style="max-width:860px">
+
+{% if not analysis and not edit_mode %}
+  <!-- STAGE 1: paste + analyze -->
+  <form method="POST" action="{{ url_for('admin_analyze') }}">
+    <div class="card">
+      <h4 class="serif">Step 1 · Enter the Notice</h4>
+      <p class="card-sub">Write or paste the college notice exactly as received.</p>
+
+      <div class="field">
+        <label for="title">Notice Title</label>
+        <input type="text" id="title" name="title" value="{{ form.title or '' }}"
+               placeholder="e.g. IIS Journal Submission – T.E. Computer Engineering"
+               data-testid="notice-title" required>
+      </div>
+      <div class="field">
+        <label for="body">Notice Body</label>
+        <textarea id="body" name="body" placeholder="Paste the full notice text here…"
+                  data-testid="notice-body" required>{{ form.body or '' }}</textarea>
+      </div>
+      <div class="field-row">
+        <div class="field" style="grid-column:span 2">
+          <label for="source">Source / Department</label>
+          <input type="text" id="source" name="source" value="{{ form.source or '' }}"
+                 placeholder="e.g. Computer Engineering Department" data-testid="notice-source">
+        </div>
+        <div class="field">
+          <label for="category">Category (optional)</label>
+          <select id="category" name="category" data-testid="notice-category">
+            <option value="">Auto-detect</option>
+            {% for c in categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg" data-testid="analyze-button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4"/></svg>
+        Analyze Notice
+      </button>
+    </div>
+  </form>
+
+{% else %}
+  <!-- STAGE 2: editable AI analysis preview -->
+  {% set act = url_for('admin_edit', notice_id=edit_id) if edit_mode else url_for('admin_publish') %}
+  <form method="POST" action="{{ act }}">
+    <div class="analysis-box" data-testid="ai-analysis-preview">
+      <div class="ab-head">
+        <span class="tag">AI ANALYSIS</span>
+        <h4 class="serif">Extracted information</h4>
+      </div>
+      <p style="font-size:13px;color:var(--ink-soft)">Rule-based extraction is intentionally simple — review and correct any field below before publishing.</p>
+      <div class="ab-grid">
+        <div class="ab-item"><div class="k">Category</div><div class="v">{{ analysis.category or 'General' }}</div></div>
+        <div class="ab-item"><div class="k">Target Branch</div><div class="v">{{ analysis.target_branches|join(', ') if analysis.target_branches else 'All' }}</div></div>
+        <div class="ab-item"><div class="k">Target Year</div><div class="v">{{ analysis.target_years|join(', ') if analysis.target_years else 'All' }}</div></div>
+        <div class="ab-item"><div class="k">Target Division</div><div class="v">{{ analysis.target_divisions|join(', ') if analysis.target_divisions else 'All' }}</div></div>
+        <div class="ab-item"><div class="k">Detected Topic(s)</div><div class="v">{{ analysis.topics|join(', ') if analysis.topics else '—' }}</div></div>
+        <div class="ab-item"><div class="k">Deadline</div><div class="v">{{ analysis.deadline or 'Not detected' }}</div></div>
+        <div class="ab-item"><div class="k">Action Required</div><div class="v">{{ 'Yes' if analysis.action_required else 'No' }}</div></div>
+        <div class="ab-item"><div class="k">Mandatory</div><div class="v">{{ 'Yes' if analysis.mandatory else 'No' }}</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h4 class="serif">Step 2 · Review &amp; Edit</h4>
+      <p class="card-sub">Everything is editable. Adjust anything the analyzer got wrong.</p>
+
+      <div class="field">
+        <label for="title">Notice Title</label>
+        <input type="text" id="title" name="title" value="{{ form.title }}" data-testid="edit-title" required>
+      </div>
+      <div class="field">
+        <label for="body">Notice Body</label>
+        <textarea id="body" name="body" data-testid="edit-body" required>{{ form.body }}</textarea>
+      </div>
+      <div class="field-row">
+        <div class="field" style="grid-column:span 2">
+          <label for="source">Source / Department</label>
+          <input type="text" id="source" name="source" value="{{ form.source }}" data-testid="edit-source">
+        </div>
+        <div class="field">
+          <label for="category">Category</label>
+          <select id="category" name="category" data-testid="edit-category">
+            {% for c in categories %}
+              <option value="{{ c }}" {{ 'selected' if c==analysis.category }}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Target Branches <span class="hint" style="display:inline">(none selected = all branches)</span></label>
+        <div class="checks">
+          {% for b in branches %}
+            <div class="check">
+              <input type="checkbox" id="br-{{ loop.index }}" name="branches" value="{{ b }}"
+                     {{ 'checked' if b in analysis.target_branches }}>
+              <label for="br-{{ loop.index }}">{{ b }}</label>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Target Years</label>
+          <div class="checks">
+            {% for y in years %}
+              <div class="check">
+                <input type="checkbox" id="yr-{{ loop.index }}" name="years" value="{{ y }}"
+                       {{ 'checked' if y in analysis.target_years }}>
+                <label for="yr-{{ loop.index }}">{{ y }}</label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="field">
+          <label>Target Divisions</label>
+          <div class="checks">
+            {% for d in divisions %}
+              <div class="check">
+                <input type="checkbox" id="dv-{{ loop.index }}" name="divisions" value="{{ d }}"
+                       {{ 'checked' if d in analysis.target_divisions }}>
+                <label for="dv-{{ loop.index }}">{{ d }}</label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field" style="grid-column:span 2">
+          <label for="topics">Relevant Topics / Subjects <span class="hint" style="display:inline">(comma separated)</span></label>
+          <input type="text" id="topics" name="topics" value="{{ analysis.topics|join(', ') }}" data-testid="edit-topics">
+        </div>
+        <div class="field">
+          <label for="deadline">Deadline</label>
+          <input type="date" id="deadline" name="deadline" value="{{ analysis.deadline or '' }}" data-testid="edit-deadline">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Flags</label>
+        <div class="switch-row">
+          <label class="switch"><input type="checkbox" name="action_required" {{ 'checked' if analysis.action_required }} data-testid="edit-action"> Action Required</label>
+          <label class="switch"><input type="checkbox" name="mandatory" {{ 'checked' if analysis.mandatory }} data-testid="edit-mandatory"> Mandatory / Compulsory</label>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <button type="submit" class="btn btn-primary btn-lg" data-testid="publish-button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+          {% if edit_mode %}Save Changes{% else %}Confirm &amp; Publish Notice{% endif %}
+        </button>
+        <a href="{{ url_for('admin_add') if not edit_mode else url_for('admin_manage') }}" class="btn btn-outline btn-lg">Cancel</a>
+      </div>
+    </div>
+  </form>
+{% endif %}
+
+</div>
+{% endblock %}

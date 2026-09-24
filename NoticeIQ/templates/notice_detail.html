@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% from "_macros.html" import deadline_class %}
+{% block page_title %}{{ n.title }}{% endblock %}
+{% block header_title %}Notice Detail{% endblock %}
+{% block header_sub %}Personalized analysis for {{ user.name }}{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('my_notices') }}" class="btn btn-outline" style="margin-bottom:18px">← Back to notices</a>
+
+<div class="detail-grid">
+  <div>
+    <div class="card">
+      <span class="badge badge-{{ n.priority_level|lower }}">{{ n.priority_level }} PRIORITY</span>
+      <h3 class="serif" style="font-size:24px;margin:12px 0 8px">{{ n.title }}</h3>
+      <div class="meta-row">
+        <span class="chip">{{ n.category }}</span>
+        <span class="chip">{{ n.source or 'College' }}</span>
+        <span class="nc-deadline {{ deadline_class(n) }}">{{ n.deadline_label }}</span>
+        {% if n.mandatory %}<span class="chip chip-warn">Mandatory</span>
+        {% elif n.action_required %}<span class="chip">Action Required</span>{% endif %}
+      </div>
+
+      <div style="display:flex;gap:20px;flex-wrap:wrap;font-size:13px;color:var(--ink-soft);margin-bottom:6px">
+        <span>📅 Deadline: <b style="color:var(--ink)">{{ n.deadline or 'Not specified' }}</b></span>
+        <span>🕒 Posted: <b style="color:var(--ink)">{{ n.created_at }}</b></span>
+      </div>
+
+      <div class="detail-body">{{ n.body }}</div>
+
+      <div style="display:flex;gap:10px;margin-top:22px">
+        <button class="chip chip-teal" style="cursor:pointer;font-size:13px;padding:8px 14px"
+                onclick="toggleSave({{ n.id }}, this)" data-testid="save-button">
+          {{ '★ Saved' if n.is_saved else '☆ Save' }}
+        </button>
+        <span class="chip" style="padding:8px 14px">{{ '✓ Read' if n.is_read else 'Unread' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-analysis" data-testid="personalized-analysis">
+    <h4 class="serif" style="font-size:16px;margin-bottom:6px">Personalized Analysis</h4>
+    <div class="score-big">
+      <div class="ring">
+        {% set r = n.relevance %}
+        <svg viewBox="0 0 120 120" width="120" height="120">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="#eef2f7" stroke-width="12"/>
+          <circle cx="60" cy="60" r="50" fill="none" stroke="#0d9488" stroke-width="12"
+                  stroke-linecap="round" stroke-dasharray="{{ (r/100*314)|round(1) }} 314"
+                  transform="rotate(-90 60 60)"/>
+          <text x="60" y="66" text-anchor="middle" font-size="26" font-weight="800"
+                font-family="Georgia" fill="#132033">{{ r }}%</text>
+        </svg>
+      </div>
+      <div style="font-size:13px;color:var(--ink-soft);font-weight:600">Relevance to you</div>
+      <div class="pri-line">
+        <span style="font-size:13px;color:var(--ink-soft)">Priority:</span>
+        <span class="badge badge-{{ n.priority_level|lower }}">{{ n.priority_level }}</span>
+        <span style="font-size:13px;color:var(--ink-soft)">({{ n.priority_score }}/100)</span>
+      </div>
+    </div>
+
+    <p style="font-size:13.5px;color:#334155;background:#f0fbfa;border:1px solid #cbe9e5;border-radius:10px;padding:12px 14px">
+      {{ n.explanation }}
+    </p>
+
+    <div style="margin-top:16px">
+      <h5 style="font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--ink-soft);margin-bottom:8px">Reasoning</h5>
+      {% for rr in n.reasons %}
+        <div class="reason {{ 'ok' if rr.ok else 'no' }}">
+          <span class="mk">{{ '✓' if rr.ok else '✗' }}</span><span>{{ rr.text }}</span>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="calc-box">
+      <h5>How the relevance was calculated</h5>
+      <div class="calc-row"><span>Audience match</span><b>{{ n.relevance_breakdown.audience_score }}/{{ n.relevance_breakdown.audience_max }}</b></div>
+      <div class="calc-row"><span>Subject relevance</span><b>{{ n.relevance_breakdown.subject_score }}/{{ n.relevance_breakdown.subject_max }}</b></div>
+      <div class="calc-row"><span>Interest relevance</span><b>{{ n.relevance_breakdown.interest_score }}/{{ n.relevance_breakdown.interest_max }}</b></div>
+      <div class="calc-row"><span>Final relevance</span><b class="calc-total">{{ n.relevance }}%</b></div>
+    </div>
+
+    <div class="calc-box">
+      <h5>How the priority was calculated</h5>
+      <div class="calc-row"><span>Relevance (60%)</span><b>{{ n.priority_breakdown.relevance }}/100</b></div>
+      <div class="calc-row"><span>Urgency (25%)</span><b>{{ n.priority_breakdown.urgency }}/100</b></div>
+      <div class="calc-row"><span>Action (15%)</span><b>{{ n.priority_breakdown.action }}/100</b></div>
+      <div class="calc-row"><span>Final priority</span><b class="calc-total">{{ n.priority_level }} ({{ n.priority_score }})</b></div>
+      {% if n.priority_breakdown.capped %}
+        <p class="hint" style="margin-top:8px">ⓘ Relevance is below 25%, so this notice is capped to LOW priority even though its deadline may be near.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

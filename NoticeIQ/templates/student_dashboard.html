@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% from "_macros.html" import notice_card, deadline_class %}
+{% block page_title %}Dashboard{% endblock %}
+{% block header_title %}Dashboard{% endblock %}
+{% block header_sub %}Your personalized notice intelligence{% endblock %}
+
+{% block content %}
+<div class="greeting" data-testid="student-greeting">
+  <h3 class="serif">{{ greeting_word }}, {{ user.name.split()[0] }} 👋</h3>
+  <div class="pills">
+    <span class="pill">Branch: <b>{{ user.branch }}</b></span>
+    <span class="pill">Year: <b>{{ user.year }}</b></span>
+    <span class="pill">Division: <b>{{ user.division }}</b></span>
+  </div>
+</div>
+
+<div class="grid-cards">
+  <div class="stat" data-testid="stat-high">
+    <div class="icon ic-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div>
+    <div class="num">{{ summary.high }}</div>
+    <div class="lbl">High Priority Notices</div>
+  </div>
+  <div class="stat" data-testid="stat-relevant">
+    <div class="icon ic-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>
+    <div class="num">{{ summary.relevant }}</div>
+    <div class="lbl">Relevant Notices</div>
+  </div>
+  <div class="stat" data-testid="stat-due">
+    <div class="icon ic-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+    <div class="num">{{ summary.due_soon }}</div>
+    <div class="lbl">Due Within 3 Days</div>
+  </div>
+  <div class="stat" data-testid="stat-total">
+    <div class="icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h6"/></svg></div>
+    <div class="num">{{ summary.total }}</div>
+    <div class="lbl">Total Notices</div>
+  </div>
+</div>
+
+<div class="layout-2col">
+  <div>
+    <div class="section-head">
+      <h4 class="serif">Important for You</h4>
+      <a href="{{ url_for('my_notices') }}" class="link">View all →</a>
+    </div>
+    {% if important %}
+      <div class="notice-list" data-testid="important-list">
+        {% for n in important %}{{ notice_card(n) }}{% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h6"/></svg>
+        <h5>Nothing urgent right now</h5>
+        <p>You have no highly relevant notices at the moment.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <aside class="widget" data-testid="upcoming-deadlines">
+    <h4 class="serif">Upcoming Deadlines</h4>
+    {% if upcoming %}
+      {% for n in upcoming %}
+      <a href="{{ url_for('notice_detail', notice_id=n.id) }}" class="deadline-item">
+        <div class="dl-date">
+          <span class="d">{{ n.deadline[8:10] if n.deadline else '—' }}</span>
+          <span class="m">{{ n.deadline_label if n.days_left is none else '' }}{{ ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][ (n.deadline[5:7]|int) -1 ] if n.deadline else '' }}</span>
+        </div>
+        <div class="dl-info">
+          <div class="t">{{ n.title|truncate(38) }}</div>
+          <div class="s">{{ n.deadline_label }} · {{ n.priority_level }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    {% else %}
+      <p style="color:var(--ink-soft);font-size:13.5px">No upcoming deadlines.</p>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% macro deadline_class(n) %}
+{%- if n.days_left is not none and n.days_left <= 1 -%}dl-urgent
+{%- elif n.days_left is not none and n.days_left <= 3 -%}dl-soon
+{%- endif -%}
+{% endmacro %}
+
+{% macro notice_card(n) %}
+<article class="notice-card" data-priority="{{ n.priority_level }}"
+         data-title="{{ n.title }}" data-body="{{ n.body }}" data-category="{{ n.category }}"
+         data-pscore="{{ n.priority_score }}" data-relevance="{{ n.relevance }}"
+         data-id="{{ n.id }}" data-days="{{ n.days_left if n.days_left is not none else 999999 }}"
+         data-due="{{ '1' if (n.days_left is not none and n.days_left >= 0 and n.days_left <= 3) else '0' }}"
+         data-read="{{ '1' if n.is_read else '0' }}" data-saved="{{ '1' if n.is_saved else '0' }}">
+  <div class="nc-top">
+    <span class="badge badge-{{ n.priority_level|lower }}">{{ n.priority_level }}</span>
+    <span class="nc-deadline {{ deadline_class(n) }}">{{ n.deadline_label }}</span>
+  </div>
+  <h3 class="nc-title">{{ n.title }}</h3>
+  <p class="nc-meta">{{ n.category }} · {{ n.source or 'College' }}</p>
+  <p class="nc-summary">{{ n.body|truncate(120) }}</p>
+
+  <div class="nc-relevance">
+    <div class="rel-row"><span>Relevance for you</span><b>{{ n.relevance }}%</b></div>
+    <div class="progress"><div class="progress-fill" style="width: {{ n.relevance }}%"></div></div>
+  </div>
+
+  <div class="nc-badges">
+    {% if n.mandatory %}<span class="chip chip-warn">Mandatory</span>
+    {% elif n.action_required %}<span class="chip">Action Required</span>{% endif %}
+    {% if not n.is_read %}<span class="chip chip-teal">Unread</span>{% endif %}
+    {% if n.is_saved %}<span class="chip">★ Saved</span>{% endif %}
+  </div>
+
+  <div class="nc-actions">
+    <button class="btn btn-ghost" data-why-toggle>Why this matters</button>
+    <a class="btn btn-primary" href="{{ url_for('notice_detail', notice_id=n.id) }}">View Notice</a>
+  </div>
+
+  <div class="nc-why">
+    <p>{{ n.explanation }}</p>
+    {% for r in n.reasons %}
+      <div class="reason {{ 'ok' if r.ok else 'no' }}">
+        <span class="mk">{{ '✓' if r.ok else '✗' }}</span><span>{{ r.text }}</span>
+      </div>
+    {% endfor %}
+  </div>
+</article>
+{% endmacro %}

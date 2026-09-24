@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in · {{ app_name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-hero">
+    <div class="lh-logo serif">N</div>
+    <h1 class="serif">{{ app_name }}</h1>
+    <p>{{ subtitle }} — an explainable, rule-based intelligent system that scores every college notice for <em>you</em>.</p>
+    <ul>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Personalized relevance for your branch, year &amp; subjects</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Priority based on urgency &amp; required actions</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> A clear explanation behind every score</li>
+    </ul>
+  </div>
+
+  <div class="login-form-side">
+    <div class="login-card">
+      <h2 class="serif">Welcome back</h2>
+      <p class="lc-sub">Sign in to view your personalized notice feed.</p>
+      <form method="POST" action="{{ url_for('login') }}">
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="you@noticeiq.local" required
+                 data-testid="login-email-input">
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="••••••••" required
+                 data-testid="login-password-input">
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg btn-block" data-testid="login-submit-button">
+          Sign in
+        </button>
+      </form>
+
+      <div class="demo-creds">
+        <h6>Demo accounts — click to autofill</h6>
+        <div class="cred"><span>Admin</span>
+          <code onclick="useCred('admin@noticeiq.local','admin123')" data-testid="cred-admin">admin@noticeiq.local</code></div>
+        <div class="cred"><span>Student (Aarav · TE Comp)</span>
+          <code onclick="useCred('student@noticeiq.local','student123')" data-testid="cred-student1">student@noticeiq.local</code></div>
+        <div class="cred"><span>Student (Riya · SE Mech)</span>
+          <code onclick="useCred('student2@noticeiq.local','student123')" data-testid="cred-student2">student2@noticeiq.local</code></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in messages %}
+    <span data-flash="{{ 'error' if cat=='error' else 'success' }}" data-flash-msg="{{ msg }}"></span>
+  {% endfor %}
+{% endwith %}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

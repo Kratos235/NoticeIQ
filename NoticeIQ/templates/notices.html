@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% from "_macros.html" import notice_card %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block header_title %}{{ title }}{% endblock %}
+{% block header_sub %}{% if scope=='my' %}Notices personalized and relevant to you{% else %}Every published notice, scored for your profile{% endif %}{% endblock %}
+
+{% block content %}
+<div class="filters">
+  <div class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+    <input type="text" id="f-search" placeholder="Search notices by title or text…" data-testid="notice-search">
+  </div>
+  <select id="f-category" data-testid="filter-category">
+    <option value="all">All Categories</option>
+    {% for c in ['Academic','Assignment','Examination','Placement','Internship','Workshop','Event','Scholarship','Fee','Administrative','General'] %}
+      <option value="{{ c }}">{{ c }}</option>
+    {% endfor %}
+  </select>
+  <select id="f-priority" data-testid="filter-priority">
+    <option value="all">All Priorities</option>
+    <option value="HIGH">High Priority</option>
+    <option value="MEDIUM">Medium Priority</option>
+    <option value="LOW">Low Priority</option>
+  </select>
+  <select id="f-extra" data-testid="filter-extra">
+    <option value="all">All</option>
+    <option value="due">Due Soon</option>
+    <option value="unread">Unread</option>
+    <option value="saved">Saved</option>
+  </select>
+  <select id="f-sort" data-testid="filter-sort">
+    <option value="priority">Highest Priority</option>
+    <option value="relevance">Highest Relevance</option>
+    <option value="deadline">Nearest Deadline</option>
+    <option value="newest">Newest</option>
+  </select>
+</div>
+
+<div class="count-note" id="count-note"></div>
+
+{% if notices %}
+  <div class="notice-grid" id="notice-collection" data-testid="notice-collection">
+    {% for n in notices %}{{ notice_card(n) }}{% endfor %}
+  </div>
+  <div class="empty" id="empty-filtered" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+    <h5>No matching notices</h5>
+    <p>Try changing your search or filters.</p>
+  </div>
+{% else %}
+  <div class="empty">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h6"/></svg>
+    <h5>No notices yet</h5>
+    <p>{% if scope=='my' %}Nothing relevant to your profile right now.{% else %}No notices have been published.{% endif %}</p>
+  </div>
+{% endif %}
+{% endblock %}
