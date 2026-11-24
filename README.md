@@ -195,7 +195,6 @@ The unit tests cover notice field extraction (including branch, year, division a
 - Deadline parsing supports common formats, not every date expression.
 - There is no model training or automatic learning from student behaviour.
 - Notices are entered by administrators; the application does not scrape college websites or email systems.
-- The FastAPI/React scaffold is separate from the main Flask implementation.
 
 ## Future improvements
 
